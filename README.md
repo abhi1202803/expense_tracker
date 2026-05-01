@@ -125,6 +125,22 @@ If the host injects `PORT` as an environment variable, the small code change bel
 
 This local environment does not have external deployment access, so the live public link still has to be created outside this session.
 
+## Render deployment
+
+This repository now includes [render.yaml](/D:/Desktop/fenomo/render.yaml) for a basic Render web service setup.
+
+On Render, you can:
+
+1. Create a new Blueprint or Web Service from this GitHub repository.
+2. Let Render read `render.yaml`.
+3. Deploy the `main` branch.
+
+Important trade-off:
+
+- The app currently stores data in `expenses.json`.
+- For a real persistent production setup on Render, attach a persistent disk or move to a database.
+- For an assignment demo, the current setup is acceptable if you are transparent about that trade-off.
+
 ## Design decisions
 
 - I used one small server that serves both the API and static frontend to keep the submission easy to run and review.

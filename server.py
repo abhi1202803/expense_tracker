@@ -1,6 +1,7 @@
 import argparse
 import hashlib
 import json
+import os
 import threading
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
@@ -324,9 +325,9 @@ def build_server(host: str, port: int, db_path: Path) -> ExpenseTrackerServer:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the Expense Tracker app.")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", default=8000, type=int)
-    parser.add_argument("--db", default=str(DEFAULT_DB_PATH))
+    parser.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"))
+    parser.add_argument("--port", default=int(os.environ.get("PORT", "8000")), type=int)
+    parser.add_argument("--db", default=os.environ.get("EXPENSES_DB_PATH", str(DEFAULT_DB_PATH)))
     return parser.parse_args()
 
 
