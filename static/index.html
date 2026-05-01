@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Personal Finance</p>
+          <h1>Expense Tracker</h1>
+          <p class="hero-copy">
+            Record expenses, recover cleanly from retries, and keep the current list total in view.
+          </p>
+        </div>
+        <div class="hero-summary">
+          <p class="summary-label">Visible Total</p>
+          <p id="totalAmount" class="summary-value">INR 0.00</p>
+          <p id="statusMessage" class="status-text">Ready.</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Add Expense</p>
+            <h2>New entry</h2>
+          </div>
+          <button id="retryPendingButton" class="ghost-button" type="button" hidden>Retry pending</button>
+        </div>
+
+        <form id="expenseForm" class="expense-form">
+          <label>
+            Amount
+            <input id="amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="1250.00" required />
+          </label>
+
+          <label>
+            Category
+            <select id="category" name="category" required>
+              <option value="">Select a category</option>
+              <option value="Food">Food</option>
+              <option value="Travel">Travel</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Bills">Bills</option>
+              <option value="Health">Health</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Education">Education</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+
+          <label>
+            Date
+            <input id="date" name="date" type="date" required />
+          </label>
+
+          <label id="customCategoryField" hidden>
+            Other category
+            <input id="customCategory" name="customCategory" type="text" placeholder="Enter custom category" />
+          </label>
+
+          <label class="description-field">
+            Description (optional)
+            <input id="description" name="description" type="text" placeholder="Lunch with team" />
+          </label>
+
+          <div class="form-actions">
+            <button id="submitButton" type="submit">Save expense</button>
+            <button id="discardPendingButton" class="ghost-button" type="button" hidden>Discard pending</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Review</p>
+            <h2>Current expenses</h2>
+          </div>
+          <div class="toolbar">
+            <label>
+              Category
+              <select id="categoryFilter">
+                <option value="">All categories</option>
+              </select>
+            </label>
+            <label>
+              Sort
+              <select id="sortSelect">
+                <option value="date_desc">Newest date first</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div id="errorBanner" class="banner error" hidden></div>
+        <div id="loadingBanner" class="banner loading" hidden>Loading expenses...</div>
+
+        <div class="summary-block">
+          <p class="summary-block-title">Category summary</p>
+          <div id="categorySummary" class="summary-grid">
+            <p class="empty-row">No category summary yet.</p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th class="amount-column">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="expensesTableBody">
+              <tr>
+                <td colspan="4" class="empty-row">No expenses yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
