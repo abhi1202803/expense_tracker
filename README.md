@@ -1,165 +1,170 @@
-# Expense Tracker
+# Expense Tracker Assignment
 
-A minimal full-stack expense tracker built for the assignment brief. It includes:
+## Submission Links
 
-- An idempotent `POST /api/expenses` API
-- A `GET /api/expenses` API with category filtering and `date_desc` sorting
-- A simple browser UI for creating, viewing, filtering, sorting, and totaling expenses
-- Small automated tests around correctness-sensitive behavior
+- Repository: [https://github.com/abhi1202803/expense_tracker](https://github.com/abhi1202803/expense_tracker)
+- Live application: [https://expense-tracker-sf2a.onrender.com](https://expense-tracker-sf2a.onrender.com)
 
-## Tech choices
+## Overview
 
-- **Python standard library + JSON file persistence**: keeps the stack lightweight, easy to run locally, and durable across refreshes and restarts without extra services.
-- **Integer cents for money**: avoids floating-point rounding problems while still supporting real currency values.
-- **Vanilla HTML/CSS/JS frontend**: small enough for the scope, with no install step required.
+This is a minimal full-stack Expense Tracker built for the assignment brief.
 
-## Idempotency strategy
+It supports:
 
-The main correctness risk in this assignment is duplicate expense creation when a client retries after a timeout, refresh, or repeated clicks.
+- creating a new expense with amount, category, optional description, and date
+- viewing a list of expenses
+- filtering expenses by category
+- sorting expenses by newest date first
+- showing the total of the currently visible expenses
+- safely handling retries and refreshes to avoid duplicate expense creation
 
-To handle that:
+## Tech Stack
 
-- `POST /api/expenses` accepts an `Idempotency-Key` header.
-- The backend stores that key with the created expense.
-- A retry with the same key and the same payload returns the original expense instead of creating a duplicate.
-- A retry with the same key but a different payload is rejected with `409 Conflict`.
-- The frontend stores an in-flight submission in `localStorage`, so a refresh can safely retry with the same key.
+- Backend: Python standard library HTTP server
+- Frontend: HTML, CSS, vanilla JavaScript
+- Persistence: JSON file (`expenses.json`)
+- Deployment: Render
 
-## API
+## How It Meets The Assignment
 
-### `POST /api/expenses`
+### Backend
 
-Create a new expense.
+Implemented API endpoints:
 
-Headers:
+- `POST /api/expenses`
+- `GET /api/expenses`
 
-- `Content-Type: application/json`
-- `Idempotency-Key: <unique-client-key>`
+Supported behavior:
 
-Body:
+- `POST /api/expenses` creates an expense with `amount`, `category`, `description`, and `date`
+- `GET /api/expenses` supports:
+  - `category=<value>`
+  - `sort=date_desc`
 
-```json
-{
-  "amount": "125.50",
-  "category": "Food",
-  "description": "Lunch",
-  "date": "2026-04-30"
-}
-```
+Data model includes:
 
-Example success response:
+- `id`
+- `amount`
+- `category`
+- `description`
+- `date`
+- `created_at`
 
-```json
-{
-  "expense": {
-    "id": "uuid",
-    "amount": "125.50",
-    "category": "Food",
-    "description": "Lunch",
-    "date": "2026-04-30",
-    "created_at": "2026-05-01T10:00:00Z"
-  },
-  "idempotency_replay": false
-}
-```
+### Frontend
 
-### `GET /api/expenses`
+Implemented UI:
 
-Optional query parameters:
+- expense form
+- expense list/table
+- category filter
+- date sort control
+- visible total
+- category summary view
+- loading and error states
 
-- `category=Food`
-- `sort=date_desc`
+## Key Design Decisions
+
+- **Money is stored as integer cents**  
+  This avoids floating-point rounding issues and keeps money handling predictable.
+
+- **Idempotency is handled explicitly with an idempotency key**  
+  This is the most important correctness feature for the assignment because users may retry requests after slow responses, failed requests, or refreshes.
+
+- **The frontend stores pending submissions in local storage**  
+  This allows the app to recover from refreshes and safely retry the same request using the same idempotency key.
+
+- **The backend and frontend are served from one small Python app**  
+  This keeps the submission easy to run, review, and deploy.
+
+- **Dates are stored in ISO format**  
+  This makes validation straightforward and keeps sorting behavior predictable.
+
+## Correctness Under Realistic Conditions
+
+The assignment emphasized unreliable networks, retries, multiple clicks, and refreshes. The implementation addresses that by:
+
+- disabling duplicate submission during an active request
+- generating a unique idempotency key per submission
+- reusing the same key when retrying a pending submission
+- returning the original expense when the same request is retried
+- rejecting reuse of the same idempotency key with a different payload
 
 ## Validation
 
-Implemented:
+Implemented validation:
 
+- amount is required
 - amount must be greater than zero
 - amount must have at most two decimal places
 - category is required
+- date is required
+- date must be in `YYYY-MM-DD` format
 - description is optional
-- date is required and must be `YYYY-MM-DD`
 
-## Running locally
+## Automated Tests
 
-```bash
-python server.py
-```
+Included backend tests cover:
 
-Then open [http://127.0.0.1:8000](http://127.0.0.1:8000).
+- idempotent replay for the same request
+- conflict when the same idempotency key is reused with different data
+- filtering and sorting behavior
+- negative amount validation
+- optional description handling
+- missing date validation
+- default listing order behavior
 
-If you want to use the bundled runtime that is already available in this environment:
-
-```bash
-C:\Users\abhis\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe server.py
-```
-
-## Running tests
+Run locally:
 
 ```bash
 python -m unittest discover -s tests
 ```
 
-## Repository-ready structure
+## Trade-offs Made Because Of The Timebox
 
-This folder is ready to be used as the assignment repository root:
+- I used a JSON file for persistence instead of a relational database.
+  This kept the app dependency-free and quick to review, while still being durable enough for the assignment.
 
-- `server.py` contains the backend API and static file server
-- `static/` contains the frontend
-- `tests/` contains automated backend tests
-- `README.md` documents design decisions, trade-offs, and run instructions
+- I kept the stack intentionally small instead of introducing a backend framework or frontend framework.
+  That reduced setup overhead and kept the core correctness logic easy to inspect.
 
-## Deployment note
+- I focused more on request correctness and money handling than on broad feature scope.
+  The assignment specifically emphasized realistic behavior and judgment, so correctness was prioritized over adding many extra features.
 
-Because the app uses only the Python standard library, it can be deployed on simple Python hosts with a start command such as:
+## What I Intentionally Did Not Do
+
+- authentication or multi-user support
+- editing or deleting expenses
+- pagination
+- advanced analytics/dashboarding
+- a production database integration
+- full production-grade persistence strategy for multi-instance hosting
+
+## Persistence Note
+
+The current deployed app stores data in `expenses.json`.
+
+For an assignment demo, this keeps the project simple and easy to run.
+
+For a more production-like deployment, I would replace this with a proper database or persistent disk-backed storage, especially on serverless or horizontally scaled platforms.
+
+## Local Run
 
 ```bash
-python server.py --host 0.0.0.0 --port $PORT
+python server.py
 ```
 
-If the host injects `PORT` as an environment variable, the small code change below is the only thing you may want before deploying:
+Then open:
 
-- pass the platform port into `server.py`
-- commit the project to GitHub
-- connect the repo to a host such as Render, Railway, or Fly.io
+- [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
-This local environment does not have external deployment access, so the live public link still has to be created outside this session.
+## Project Structure
 
-## Render deployment
+- `server.py` - backend API and static file server
+- `static/` - frontend files
+- `tests/` - automated tests
+- `render.yaml` - Render deployment configuration
+- `DEPLOYMENT.md` - deployment notes
 
-This repository now includes [render.yaml](/D:/Desktop/fenomo/render.yaml) for a basic Render web service setup.
+## AI Usage Note
 
-On Render, you can:
-
-1. Create a new Blueprint or Web Service from this GitHub repository.
-2. Let Render read `render.yaml`.
-3. Deploy the `main` branch.
-
-Important trade-off:
-
-- The app currently stores data in `expenses.json`.
-- For a real persistent production setup on Render, attach a persistent disk or move to a database.
-- For an assignment demo, the current setup is acceptable if you are transparent about that trade-off.
-
-## Design decisions
-
-- I used one small server that serves both the API and static frontend to keep the submission easy to run and review.
-- Expense dates are stored as ISO strings, which makes them easy to validate and sort consistently.
-- Money is stored as integer cents in the persistence layer and formatted back to a string for API responses.
-- The frontend always requests `sort=date_desc` so the UI matches the acceptance criteria.
-
-## Trade-offs
-
-- I kept authentication and multi-user support out of scope.
-- The backend uses the idempotency-key pattern explicitly rather than trying to infer duplicates from expense fields, because inferring duplicates can incorrectly collapse legitimate repeated expenses.
-- In this environment I used a simple JSON-file store instead of a relational database so the app stays dependency-free and easy to run.
-
-## Intentionally not done
-
-- No external component library or frontend framework
-- No live deployment from this local environment
-- No pagination, editing, or deletion of expenses
-
-## Submission notes
-
-The assignment asks for both a repository link and a live deployment link. This project is ready to be committed to a repository, but it has not been deployed from this environment.
+AI-assisted tooling was used during development, as allowed by the assignment. Final implementation decisions, prioritization, and validation were guided toward the assignment's focus on correctness, money handling, retries, and maintainability.
