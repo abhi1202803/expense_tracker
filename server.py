@@ -169,6 +169,19 @@ class ExpenseStore:
 
         return [self._public_expense(expense) for expense in expenses]
 
+    def delete_expense(self, expense_id: str) -> bool:
+        with self.lock:
+            data = self._read_data()
+            expenses = data["expenses"]
+            remaining = [expense for expense in expenses if expense["id"] != expense_id]
+
+            if len(remaining) == len(expenses):
+                return False
+
+            data["expenses"] = remaining
+            self._write_data(data)
+            return True
+
     @staticmethod
     def _public_expense(expense: dict[str, Any]) -> dict[str, Any]:
         return {
@@ -227,6 +240,21 @@ class ExpenseTrackerHandler(BaseHTTPRequestHandler):
                 "idempotency_replay": not result.created,
             },
         )
+
+    def do_DELETE(self) -> None:
+        parsed = urlparse(self.path)
+        path_parts = parsed.path.strip("/").split("/")
+
+        if len(path_parts) == 3 and path_parts[0] == "api" and path_parts[1] == "expenses":
+            deleted = self.server.store.delete_expense(path_parts[2])
+            if not deleted:
+                self.send_error_json(HTTPStatus.NOT_FOUND, "Expense not found.")
+                return
+
+            self.send_json(HTTPStatus.OK, {"deleted": True})
+            return
+
+        self.send_error_json(HTTPStatus.NOT_FOUND, "Route not found.")
 
     def handle_list_expenses(self, parsed) -> None:
         query = parse_qs(parsed.query)

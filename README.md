@@ -133,7 +133,6 @@ python -m unittest discover -s tests
 ## What I Intentionally Did Not Do
 
 - authentication or multi-user support
-- editing or deleting expenses
 - pagination
 - advanced analytics/dashboarding
 - a production database integration

@@ -266,6 +266,23 @@ td.amount-column {
   font-variant-numeric: tabular-nums;
 }
 
+.actions-column {
+  text-align: center;
+}
+
+.inline-delete-button {
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid rgba(159, 45, 45, 0.18);
+  background: rgba(159, 45, 45, 0.08);
+  color: var(--error);
+  font-weight: 700;
+}
+
+.inline-delete-button:hover {
+  background: rgba(159, 45, 45, 0.16);
+}
+
 .empty-row {
   text-align: center;
   color: var(--muted);

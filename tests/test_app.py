@@ -151,6 +151,25 @@ class ExpenseStoreTests(unittest.TestCase):
         self.assertEqual(listed[0]["id"], second.expense["id"])
         self.assertEqual(listed[1]["id"], first.expense["id"])
 
+    def test_delete_expense_removes_entry(self) -> None:
+        created = self.store.create_expense(
+            {
+                "amount": "80.00",
+                "category": "Travel",
+                "description": "Cab",
+                "date": "2026-04-10",
+            },
+            "delete-entry",
+        )
+
+        deleted = self.store.delete_expense(created.expense["id"])
+
+        self.assertTrue(deleted)
+        self.assertEqual(self.store.list_expenses(), [])
+
+    def test_delete_expense_returns_false_for_missing_id(self) -> None:
+        self.assertFalse(self.store.delete_expense("missing-id"))
+
 
 if __name__ == "__main__":
     unittest.main()

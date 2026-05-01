@@ -159,7 +159,7 @@ function hydrateCategoryChoices() {
 
 function renderExpenses() {
   if (state.expenses.length === 0) {
-    elements.expensesTableBody.innerHTML = '<tr><td colspan="4" class="empty-row">No expenses match the current view.</td></tr>';
+    elements.expensesTableBody.innerHTML = '<tr><td colspan="5" class="empty-row">No expenses match the current view.</td></tr>';
     elements.totalAmount.textContent = "INR 0.00";
     renderCategorySummary();
     return;
@@ -176,6 +176,9 @@ function renderExpenses() {
           <td>${escapeHtml(expense.category)}</td>
           <td>${escapeHtml(expense.description || "-")}</td>
           <td class="amount-column">${formatMoney(expense.amount)}</td>
+          <td class="actions-column">
+            <button class="inline-delete-button" type="button" data-expense-id="${expense.id}">Delete</button>
+          </td>
         </tr>
       `,
     )
@@ -305,6 +308,33 @@ function discardPendingSubmission() {
   setStatus("Cleared the pending submission.");
 }
 
+async function deleteExpense(expenseId) {
+  const confirmed = window.confirm("Delete this expense entry?");
+  if (!confirmed) {
+    return;
+  }
+
+  setError("");
+  setStatus("Deleting expense...");
+
+  try {
+    const response = await fetch(`/api/expenses/${expenseId}`, {
+      method: "DELETE",
+    });
+    const body = await response.json();
+
+    if (!response.ok) {
+      throw new Error(body.error || "Failed to delete expense.");
+    }
+
+    await loadExpenses();
+    setStatus("Expense deleted.");
+  } catch (error) {
+    setError(error.message || "Failed to delete expense.");
+    setStatus("Unable to delete expense.", true);
+  }
+}
+
 function registerEventHandlers() {
   elements.expenseForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -322,6 +352,24 @@ function registerEventHandlers() {
   elements.category.addEventListener("change", syncCategoryMode);
   elements.categoryFilter.addEventListener("change", loadExpenses);
   elements.sortSelect.addEventListener("change", loadExpenses);
+  elements.expensesTableBody.addEventListener("click", async (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    const deleteButton = target.closest("[data-expense-id]");
+    if (!deleteButton) {
+      return;
+    }
+
+    const expenseId = deleteButton.getAttribute("data-expense-id");
+    if (!expenseId) {
+      return;
+    }
+
+    await deleteExpense(expenseId);
+  });
 }
 
 async function bootstrap() {
